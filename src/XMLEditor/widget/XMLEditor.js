@@ -48,6 +48,9 @@ define([
             logger.debug(this.id + ".update");
 
             this._contextObj = obj;
+            this._resetSubscriptions();
+
+            this._setupEditor();            
             this._updateRendering(callback);
         },
 
@@ -59,29 +62,59 @@ define([
             logger.debug(this.id + ".uninitialize");
         },
 
-        _updateRendering: function(callback) {
-            logger.debug(this.id + "._updateRendering");
-            var value = "" + this._contextObj.get(this.field);
-            var editor = ace.edit("editor");
-            editor.getSession().setUseWorker(false);
+        _setupEditor: function() {
+            this.editor = ace.edit(this.node);
+            this.editor.getSession().setUseWorker(false);
             // add the listener to update the context object when the editor's value changes
-            editor.on("change", function(data) {
-                this._contextObj.set(this.field, editor.getValue());
+            this.editor.on("change", function(data) {
+                this._justchanged = true;
+                this._contextObj.set(this.field, this.editor.getValue());
             }.bind(this));
 
-            editor.setTheme("ace/theme/tomorrow");
-            editor.getSession().setMode("ace/mode/xml");
-            editor.setValue(value);
+            this.editor.setTheme("ace/theme/tomorrow");
+            this.editor.getSession().setMode("ace/mode/xml");
+        },
 
-            
+        _updateRendering: function(callback) {
+            if (!this._justchanged) {
+                var value = "" + this._contextObj.get(this.field);
+                this.editor.setValue(value);
+            }
+            this._justchanged = false;
             this._executeCallback(callback, "_updateRendering");
         },
+
 
         // Shorthand for executing a callback, adds logging to your inspector
         _executeCallback: function(cb, from) {
             logger.debug(this.id + "._executeCallback" + (from ? " from " + from : ""));
             if (cb && typeof cb === "function") {
                 cb();
+            }
+        },
+
+        // Reset subscriptions.
+        _resetSubscriptions: function () {
+            logger.debug(this.id + "._resetSubscriptions");
+            // Release handles on previous object, if any.
+            this.unsubscribeAll();
+
+            // When a mendix object exists create subscribtions.
+            if (this._contextObj) {
+                this.subscribe({
+                    guid: this._contextObj.getGuid(),
+                    callback: lang.hitch(this, function (guid) {
+                        this._updateRendering();
+                    })
+                });
+
+                this.subscribe({
+                    guid: this._contextObj.getGuid(),
+                    attr: this.field,
+                    callback: lang.hitch(this, function (guid, attr, attrValue) {
+                        this._updateRendering();
+                    })
+                });
             }
         }
     });
