@@ -14,12 +14,9 @@ define([
     "dojo/text",
     "dojo/html",
     "dojo/_base/event",
-    "XMLEditor/lib/jquery-1.11.2",
     "dojo/text!XMLEditor/widget/template/XMLEditor.html"
-], function(declare, _WidgetBase, _TemplatedMixin, dom, dojoDom, dojoProp, dojoGeometry, dojoClass, dojoStyle, dojoConstruct, dojoArray, lang, dojoText, dojoHtml, dojoEvent, _jQuery, widgetTemplate) {
+], function(declare, _WidgetBase, _TemplatedMixin, dom, dojoDom, dojoProp, dojoGeometry, dojoClass, dojoStyle, dojoConstruct, dojoArray, lang, dojoText, dojoHtml, dojoEvent, widgetTemplate) {
     "use strict";
-
-    var $ = _jQuery.noConflict(true);
 
     return declare("XMLEditor.widget.XMLEditor", [_WidgetBase, _TemplatedMixin], {
 
